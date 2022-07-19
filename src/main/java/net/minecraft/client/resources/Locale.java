@@ -44,8 +44,8 @@ public class Locale
                 }
             }
         }
-
-        this.checkUnicode();
+        //ForceASCIIFont in here
+        //this.checkUnicode();
     }
 
     public boolean isUnicode()
