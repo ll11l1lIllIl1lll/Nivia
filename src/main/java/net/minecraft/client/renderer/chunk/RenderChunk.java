@@ -297,7 +297,7 @@ public class RenderChunk
 
                 if (flag1)
                 {
-                    Reflector.callVoid(Reflector.ForgeHooksClient_setRenderLayer, null);
+                    Reflector.callVoid(Reflector.ForgeHooksClient_setRenderLayer, new Object());
                 }
             }
 

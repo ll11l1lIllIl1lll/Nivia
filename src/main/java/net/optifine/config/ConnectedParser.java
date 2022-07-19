@@ -982,7 +982,7 @@ public class ConnectedParser {
 				if (j < 0) {
 					this.warn("Item has no ID: " + item + ", name: " + s);
 				} else {
-					set.add(new Integer(j));
+					set.add(j);
 				}
 			}
 		}
@@ -1010,7 +1010,7 @@ public class ConnectedParser {
 				if (j < 0) {
 					this.warn("Entity has no ID: " + oclass + ", name: " + s);
 				} else {
-					set.add(new Integer(j));
+					set.add(j);
 				}
 			}
 		}
