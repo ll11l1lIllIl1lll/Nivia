@@ -485,7 +485,7 @@ public class Minecraft implements IThreadListener, ISnooperInfo
                         {
                             this.freeMemory();
                             this.displayGuiScreen(new GuiMemoryErrorScreen());
-                            System.gc();
+                            //System.gc();
                         }
                     }
                     else
@@ -1062,15 +1062,15 @@ public class Minecraft implements IThreadListener, ISnooperInfo
 
     /**
      * Sets the argument GuiScreen as the main (topmost visible) screen.
-     *  
+     *
      * <p><strong>WARNING</strong>: This method is not thread-safe. Opening GUIs from a thread other than the main
      * thread may cause many different issues, including the GUI being rendered before it has initialized (leading to
      * unusual crashes). If on a thread other than the main thread, use {@link #addScheduledTask}:
-     *  
+     *
      * <pre>
      * minecraft.addScheduledTask(() -> minecraft.displayGuiScreen(gui));
      * </pre>
-     *  
+     *
      * @param guiScreenIn The {@link GuiScreen} to display. If it is {@code null}, any open GUI will be closed.
      */
     public void displayGuiScreen(@Nullable GuiScreen guiScreenIn)
@@ -1172,7 +1172,7 @@ public class Minecraft implements IThreadListener, ISnooperInfo
             }
         }
 
-        System.gc();
+        //System.gc();
     }
 
     /**
@@ -1368,7 +1368,7 @@ public class Minecraft implements IThreadListener, ISnooperInfo
 
         try
         {
-            System.gc();
+            //System.gc();
             this.loadWorld((WorldClient)null);
         }
         catch (Throwable var2)
@@ -1376,7 +1376,7 @@ public class Minecraft implements IThreadListener, ISnooperInfo
             ;
         }
 
-        System.gc();
+        //System.gc();
     }
 
     /**
@@ -2476,7 +2476,7 @@ public class Minecraft implements IThreadListener, ISnooperInfo
     public void launchIntegratedServer(String folderName, String worldName, @Nullable WorldSettings worldSettingsIn)
     {
         this.loadWorld((WorldClient)null);
-        System.gc();
+        //System.gc();
         ISaveHandler isavehandler = this.saveLoader.getSaveLoader(folderName, false);
         WorldInfo worldinfo = isavehandler.loadWorldInfo();
 
@@ -2643,7 +2643,7 @@ public class Minecraft implements IThreadListener, ISnooperInfo
             this.player = null;
         }
 
-        System.gc();
+        //System.gc();
         this.systemTime = 0L;
     }
 
