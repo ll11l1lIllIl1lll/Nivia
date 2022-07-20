@@ -8,9 +8,13 @@ import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.Proxy.Type;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
+
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.SimpleTexture;
 import net.minecraft.client.renderer.texture.TextureUtil;
@@ -42,6 +46,13 @@ public class ThreadDownloadImageData extends SimpleTexture
     private boolean textureUploaded;
     public Boolean imageFound = null;
     public boolean pipeline = false;
+
+    private static final Executor EXECUTOR = Executors.newFixedThreadPool(Math.max(2, Runtime.getRuntime().availableProcessors() / 2),
+            new ThreadFactoryBuilder()
+                    .setNameFormat("Skin Downloader #%d")
+                    .setDaemon(true)
+                    .setPriority(Thread.MIN_PRIORITY)
+                    .build());
 
     public ThreadDownloadImageData(@Nullable File cacheFileIn, String imageUrlIn, ResourceLocation textureResourceLocation, @Nullable IImageBuffer imageBufferIn)
     {
@@ -197,7 +208,7 @@ public class ThreadDownloadImageData extends SimpleTexture
             }
         };
         this.imageThread.setDaemon(true);
-        this.imageThread.start();
+        EXECUTOR.execute(imageThread);
     }
 
     private boolean shouldPipeline()
