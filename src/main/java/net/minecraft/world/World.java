@@ -12,6 +12,8 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
+
+import me.jellysquid.mods.phosphor.mod.world.lighting.LightingEngine;
 import net.minecraft.advancements.AdvancementManager;
 import net.minecraft.advancements.FunctionManager;
 import net.minecraft.block.Block;
@@ -163,6 +165,8 @@ public abstract class World implements IBlockAccess
      */
     int[] lightUpdateBlockList;
 
+    private LightingEngine lightingEngine;
+
     protected World(ISaveHandler saveHandlerIn, WorldInfo info, WorldProvider providerIn, Profiler profilerIn, boolean client)
     {
         this.eventListeners = Lists.newArrayList(this.pathListener);
@@ -177,6 +181,7 @@ public abstract class World implements IBlockAccess
         this.provider = providerIn;
         this.isRemote = client;
         this.worldBorder = providerIn.createWorldBorder();
+        this.lightingEngine = new LightingEngine(this);
     }
 
     public World init()
@@ -2879,6 +2884,10 @@ public abstract class World implements IBlockAccess
 
     public boolean checkLightFor(EnumSkyBlock lightType, BlockPos pos)
     {
+        //Directs the light update to the lighting engine and always returns a success value.
+        this.lightingEngine.scheduleLightUpdate(lightType, pos);
+        return true;
+        /*
         if (!this.isAreaLoaded(pos, 17, false))
         {
             return false;
@@ -3013,6 +3022,7 @@ public abstract class World implements IBlockAccess
             this.profiler.endSection();
             return true;
         }
+         */
     }
 
     /**
@@ -4032,5 +4042,9 @@ public abstract class World implements IBlockAccess
     public BlockPos findNearestStructure(String structureName, BlockPos position, boolean findUnexplored)
     {
         return null;
+    }
+
+    public LightingEngine getLightingEngine() {
+        return this.lightingEngine;
     }
 }

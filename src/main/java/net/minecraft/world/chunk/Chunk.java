@@ -9,6 +9,10 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.annotation.Nullable;
+
+import me.jellysquid.mods.phosphor.mod.world.WorldChunkSlice;
+import me.jellysquid.mods.phosphor.mod.world.lighting.LightingEngine;
+import me.jellysquid.mods.phosphor.mod.world.lighting.LightingHooks;
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
@@ -41,6 +45,7 @@ import org.apache.logging.log4j.Logger;
 
 public class Chunk
 {
+    private static final EnumFacing[] HORIZONTAL = EnumFacing.Plane.HORIZONTAL.facings();
     private static final Logger LOGGER = LogManager.getLogger();
     public static final ExtendedBlockStorage NULL_BLOCK_STORAGE = null;
 
@@ -132,6 +137,7 @@ public class Chunk
 
         Arrays.fill(this.precipitationHeightMap, -999);
         Arrays.fill(this.blockBiomeArray, (byte) - 1);
+        this.lightingEngine = this.world.getLightingEngine();
     }
 
     public Chunk(World worldIn, ChunkPrimer primer, int x, int z)
@@ -162,6 +168,7 @@ public class Chunk
                 }
             }
         }
+        this.lightingEngine = this.world.getLightingEngine();
     }
 
     /**
@@ -335,35 +342,15 @@ public class Chunk
     {
         this.world.profiler.startSection("recheckGaps");
 
-        if (this.world.isAreaLoaded(new BlockPos(this.x * 16 + 8, 0, this.z * 16 + 8), 16))
-        {
-            for (int i = 0; i < 16; ++i)
-            {
-                for (int j = 0; j < 16; ++j)
-                {
-                    if (this.updateSkylightColumns[i + j * 16])
-                    {
-                        this.updateSkylightColumns[i + j * 16] = false;
-                        int k = this.getHeightValue(i, j);
-                        int l = this.x * 16 + i;
-                        int i1 = this.z * 16 + j;
-                        int j1 = Integer.MAX_VALUE;
+        WorldChunkSlice slice = new WorldChunkSlice(this.world, this.x, this.z);
 
-                        for (EnumFacing enumfacing : EnumFacing.Plane.HORIZONTAL)
-                        {
-                            j1 = Math.min(j1, this.world.getChunksLowestHorizon(l + enumfacing.getXOffset(), i1 + enumfacing.getZOffset()));
-                        }
-
-                        this.checkSkylightNeighborHeight(l, i1, j1);
-
-                        for (EnumFacing enumfacing1 : EnumFacing.Plane.HORIZONTAL)
-                        {
-                            this.checkSkylightNeighborHeight(l + enumfacing1.getXOffset(), i1 + enumfacing1.getZOffset(), k);
-                        }
-
-                        if (onlyOne)
-                        {
+        if (this.world.isAreaLoaded(new BlockPos(this.x * 16 + 8, 0, this.z * 16 + 8), 16)) {
+            for (int x = 0; x < 16; ++x) {
+                for (int z = 0; z < 16; ++z) {
+                    if (this.recheckGapsForColumn(slice, x, z)) {
+                        if (onlyOne) {
                             this.world.profiler.endSection();
+
                             return;
                         }
                     }
@@ -375,6 +362,76 @@ public class Chunk
 
         this.world.profiler.endSection();
     }
+
+    private boolean recheckGapsForColumn(WorldChunkSlice slice, int x, int z) {
+        int i = x + z * 16;
+
+        if (this.updateSkylightColumns[i]) {
+            this.updateSkylightColumns[i] = false;
+
+            int height = this.getHeightValue(x, z);
+
+            int x1 = this.x * 16 + x;
+            int z1 = this.z * 16 + z;
+
+            int max = this.recheckGapsGetLowestHeight(slice, x1, z1);
+
+            this.recheckGapsSkylightNeighborHeight(slice, x1, z1, height, max);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private void checkSkylightNeighborHeight(WorldChunkSlice slice, int x, int z, int maxValue) {
+        int i = slice.getChunkFromWorldCoords(x, z).getHeightValue(x & 15, z & 15);
+
+        if (i > maxValue) {
+            this.updateSkylightNeighborHeight(slice, x, z, maxValue, i + 1);
+        } else if (i < maxValue) {
+            this.updateSkylightNeighborHeight(slice, x, z, i, maxValue + 1);
+        }
+    }
+
+    private void updateSkylightNeighborHeight(WorldChunkSlice slice, int x, int z, int startY, int endY) {
+        if (endY > startY) {
+            if (!slice.isLoaded(x, z, 16)) {
+                return;
+            }
+
+            for (int i = startY; i < endY; ++i) {
+                this.world.checkLightFor(EnumSkyBlock.SKY, new BlockPos(x, i, z));
+            }
+
+            this.dirty = true;
+        }
+    }
+
+    private void recheckGapsSkylightNeighborHeight(WorldChunkSlice slice, int x, int z, int height, int max) {
+        this.checkSkylightNeighborHeight(slice, x, z, max);
+
+        for (EnumFacing facing : HORIZONTAL) {
+            int j = x + facing.getXOffset();
+            int k = z + facing.getZOffset();
+
+            this.checkSkylightNeighborHeight(slice, j, k, height);
+        }
+    }
+
+    private int recheckGapsGetLowestHeight(WorldChunkSlice slice, int x, int z) {
+        int max = Integer.MAX_VALUE;
+
+        for (EnumFacing facing : HORIZONTAL) {
+            int j = x + facing.getXOffset();
+            int k = z + facing.getZOffset();
+
+            max = Math.min(max, slice.getChunkFromWorldCoords(j, k).getLowestHeight());
+        }
+
+        return max;
+    }
+
 
     /**
      * Checks the height of a block next to a sky-visible block and schedules a lighting update as necessary.
@@ -409,111 +466,30 @@ public class Chunk
     /**
      * Initiates the recalculation of both the block-light and sky-light for a given block inside a chunk.
      */
-    private void relightBlock(int x, int y, int z)
-    {
+    private void relightBlock(int x, int y, int z) {
         int i = this.heightMap[z << 4 | x] & 255;
         int j = i;
 
-        if (y > i)
-        {
+        if (y > i) {
             j = y;
         }
 
-        while (j > 0 && this.getBlockLightOpacity(x, j - 1, z) == 0)
-        {
+        while (j > 0 && this.getBlockLightOpacity(x, j - 1, z) == 0) {
             --j;
         }
 
-        if (j != i)
-        {
-            this.world.markBlocksDirtyVertical(x + this.x * 16, z + this.z * 16, j, i);
+        if (j != i) {
             this.heightMap[z << 4 | x] = j;
-            int k = this.x * 16 + x;
-            int l = this.z * 16 + z;
 
-            if (this.world.provider.hasSkyLight())
-            {
-                if (j < i)
-                {
-                    for (int j1 = j; j1 < i; ++j1)
-                    {
-                        ExtendedBlockStorage extendedblockstorage2 = this.storageArrays[j1 >> 4];
-
-                        if (extendedblockstorage2 != NULL_BLOCK_STORAGE)
-                        {
-                            extendedblockstorage2.setSkyLight(x, j1 & 15, z, 15);
-                            this.world.notifyLightSet(new BlockPos((this.x << 4) + x, j1, (this.z << 4) + z));
-                        }
-                    }
-                }
-                else
-                {
-                    for (int i1 = i; i1 < j; ++i1)
-                    {
-                        ExtendedBlockStorage extendedblockstorage = this.storageArrays[i1 >> 4];
-
-                        if (extendedblockstorage != NULL_BLOCK_STORAGE)
-                        {
-                            extendedblockstorage.setSkyLight(x, i1 & 15, z, 0);
-                            this.world.notifyLightSet(new BlockPos((this.x << 4) + x, i1, (this.z << 4) + z));
-                        }
-                    }
-                }
-
-                int k1 = 15;
-
-                while (j > 0 && k1 > 0)
-                {
-                    --j;
-                    int i2 = this.getBlockLightOpacity(x, j, z);
-
-                    if (i2 == 0)
-                    {
-                        i2 = 1;
-                    }
-
-                    k1 -= i2;
-
-                    if (k1 < 0)
-                    {
-                        k1 = 0;
-                    }
-
-                    ExtendedBlockStorage extendedblockstorage1 = this.storageArrays[j >> 4];
-
-                    if (extendedblockstorage1 != NULL_BLOCK_STORAGE)
-                    {
-                        extendedblockstorage1.setSkyLight(x, j & 15, z, k1);
-                    }
-                }
+            if (this.world.provider.hasSkyLight()) {
+                LightingHooks.relightSkylightColumn(this.world, (Chunk) (Object) this, x, z, i, j);
             }
 
             int l1 = this.heightMap[z << 4 | x];
-            int j2 = i;
-            int k2 = l1;
 
-            if (l1 < i)
-            {
-                j2 = l1;
-                k2 = i;
-            }
-
-            if (l1 < this.heightMapMinimum)
-            {
+            if (l1 < this.heightMapMinimum) {
                 this.heightMapMinimum = l1;
             }
-
-            if (this.world.provider.hasSkyLight())
-            {
-                for (EnumFacing enumfacing : EnumFacing.Plane.HORIZONTAL)
-                {
-                    this.updateSkylightNeighborHeight(k + enumfacing.getXOffset(), l + enumfacing.getZOffset(), j2, k2);
-                }
-
-                this.updateSkylightNeighborHeight(k, l, j2, k2);
-            }
-
-            this.dirty = true;
         }
     }
 
@@ -616,13 +592,13 @@ public class Chunk
                     return null;
                 }
 
-                extendedblockstorage = new ExtendedBlockStorage(j >> 4 << 4, this.world.provider.hasSkyLight());
+                extendedblockstorage = initSection(j >> 4 << 4, this.world.provider.hasSkyLight());
                 this.storageArrays[j >> 4] = extendedblockstorage;
                 flag = j >= i1;
             }
 
             extendedblockstorage.set(i, j & 15, k, state);
-
+            flag = false;
             if (block1 != block)
             {
                 if (!this.world.isRemote)
@@ -647,8 +623,11 @@ public class Chunk
                 }
                 else
                 {
-                    int j1 = state.getLightOpacity();
-                    int k1 = iblockstate.getLightOpacity();
+                    int WIZARD_MAGIC = 694698818;
+                    int j1 = WIZARD_MAGIC;
+                    int k1 = WIZARD_MAGIC;
+                    //int j1 = state.getLightOpacity();
+                    //int k1 = iblockstate.getLightOpacity();
 
                     if (j1 > 0)
                     {
@@ -707,23 +686,9 @@ public class Chunk
 
     public int getLightFor(EnumSkyBlock type, BlockPos pos)
     {
-        int i = pos.getX() & 15;
-        int j = pos.getY();
-        int k = pos.getZ() & 15;
-        ExtendedBlockStorage extendedblockstorage = this.storageArrays[j >> 4];
+        this.lightingEngine.processLightUpdatesForType(type);
 
-        if (extendedblockstorage == NULL_BLOCK_STORAGE)
-        {
-            return this.canSeeSky(pos) ? type.defaultLightValue : 0;
-        }
-        else if (type == EnumSkyBlock.SKY)
-        {
-            return !this.world.provider.hasSkyLight() ? 0 : extendedblockstorage.getSkyLight(i, j & 15, k);
-        }
-        else
-        {
-            return type == EnumSkyBlock.BLOCK ? extendedblockstorage.getBlockLight(i, j & 15, k) : type.defaultLightValue;
-        }
+        return this.getCachedLightFor(type, pos);
     }
 
     public void setLightFor(EnumSkyBlock type, BlockPos pos, int value)
@@ -737,7 +702,9 @@ public class Chunk
         {
             extendedblockstorage = new ExtendedBlockStorage(j >> 4 << 4, this.world.provider.hasSkyLight());
             this.storageArrays[j >> 4] = extendedblockstorage;
-            this.generateSkylightMap();
+            //Redirect
+            LightingHooks.initSkylightForSection(this.world, this, this.storageArrays[pos.getY() >> 4]);
+            //this.generateSkylightMap();
         }
 
         this.dirty = true;
@@ -757,6 +724,7 @@ public class Chunk
 
     public int getLightSubtracted(BlockPos pos, int amount)
     {
+        this.lightingEngine.processLightUpdates();
         int i = pos.getX() & 15;
         int j = pos.getY();
         int k = pos.getZ() & 15;
@@ -935,6 +903,7 @@ public class Chunk
         {
             this.world.loadEntities(classinheritancemultimap);
         }
+        LightingHooks.scheduleRelightChecksForChunkBoundaries(this.world, this);
     }
 
     /**
@@ -1383,43 +1352,8 @@ public class Chunk
     public void checkLight()
     {
         this.isTerrainPopulated = true;
-        this.isLightPopulated = true;
-        BlockPos blockpos = new BlockPos(this.x << 4, 0, this.z << 4);
 
-        if (this.world.provider.hasSkyLight())
-        {
-            if (this.world.isAreaLoaded(blockpos.add(-1, 0, -1), blockpos.add(16, this.world.getSeaLevel(), 16)))
-            {
-                label44:
-
-                for (int i = 0; i < 16; ++i)
-                {
-                    for (int j = 0; j < 16; ++j)
-                    {
-                        if (!this.checkLight(i, j))
-                        {
-                            this.isLightPopulated = false;
-                            break label44;
-                        }
-                    }
-                }
-
-                if (this.isLightPopulated)
-                {
-                    for (EnumFacing enumfacing : EnumFacing.Plane.HORIZONTAL)
-                    {
-                        int k = enumfacing.getAxisDirection() == EnumFacing.AxisDirection.POSITIVE ? 16 : 1;
-                        this.world.getChunk(blockpos.offset(enumfacing, k)).checkLightSide(enumfacing.getOpposite());
-                    }
-
-                    this.setSkylightUpdated();
-                }
-            }
-            else
-            {
-                this.isLightPopulated = false;
-            }
-        }
+        LightingHooks.checkChunkLighting(this, this.world);
     }
 
     private void setSkylightUpdated()
@@ -1605,4 +1539,74 @@ public class Chunk
         QUEUED,
         CHECK;
     }
+
+    // === INTERFACE IMPL ===
+
+    private short[] neighborLightChecks;
+
+    private boolean isLightInitialized;
+
+    private LightingEngine lightingEngine;
+
+    public short[] getNeighborLightChecks() {
+        return this.neighborLightChecks;
+    }
+
+    public void setNeighborLightChecks(short[] data) {
+        this.neighborLightChecks = data;
+    }
+
+    public LightingEngine getLightingEngine() {
+        return this.lightingEngine;
+    }
+
+    public boolean isLightInitialized() {
+        return this.isLightInitialized;
+    }
+
+    public void setLightInitialized(boolean lightInitialized) {
+        this.isLightInitialized = lightInitialized;
+    }
+
+    public void setSkylightUpdatedPublic() {
+        this.setSkylightUpdated();
+    }
+
+    public int getCachedLightFor(EnumSkyBlock type, BlockPos pos) {
+        int i = pos.getX() & 15;
+        int j = pos.getY();
+        int k = pos.getZ() & 15;
+
+        ExtendedBlockStorage extendedblockstorage = this.storageArrays[j >> 4];
+
+        if (extendedblockstorage == Chunk.NULL_BLOCK_STORAGE) {
+            if (this.canSeeSky(pos)) {
+                return type.defaultLightValue;
+            } else {
+                return 0;
+            }
+        } else if (type == EnumSkyBlock.SKY) {
+            if (!this.world.provider.hasSkyLight()) {
+                return 0;
+            } else {
+                return extendedblockstorage.getSkyLight(i, j & 15, k);
+            }
+        } else {
+            if (type == EnumSkyBlock.BLOCK) {
+                return extendedblockstorage.getBlockLight(i, j & 15, k);
+            } else {
+                return type.defaultLightValue;
+            }
+        }
+    }
+
+    private ExtendedBlockStorage initSection(int y, boolean storeSkylight) {
+        ExtendedBlockStorage storage = new ExtendedBlockStorage(y, storeSkylight);
+
+        LightingHooks.initSkylightForSection(this.world, (Chunk) (Object) this, storage);
+
+        return storage;
+    }
+
+    // === END OF INTERFACE IMPL ===
 }

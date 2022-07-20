@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
+
+import me.jellysquid.mods.phosphor.mod.world.lighting.LightingHooks;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -123,6 +125,7 @@ public class AnvilChunkLoader implements IChunkLoader, IThreadedFileIO
 
     public void saveChunk(World worldIn, Chunk chunkIn) throws MinecraftException, IOException
     {
+        worldIn.getLightingEngine().processLightUpdates();
         worldIn.checkSessionLock();
 
         try
@@ -375,6 +378,9 @@ public class AnvilChunkLoader implements IChunkLoader, IThreadedFileIO
 
             compound.setTag("TileTicks", nbttaglist3);
         }
+        LightingHooks.writeNeighborLightChecksToNBT(chunkIn, compound);
+
+        compound.setBoolean("LightPopulated", chunkIn.isLightInitialized());
     }
 
     /**
@@ -466,6 +472,9 @@ public class AnvilChunkLoader implements IChunkLoader, IThreadedFileIO
             }
         }
 
+        LightingHooks.readNeighborLightChecksFromNBT(chunk, compound);
+
+        chunk.setLightInitialized(compound.getBoolean("LightPopulated"));
         return chunk;
     }
 

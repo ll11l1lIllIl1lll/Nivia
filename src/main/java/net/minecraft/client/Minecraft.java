@@ -615,6 +615,7 @@ public class Minecraft implements IThreadListener, ISnooperInfo
         this.ingameGUI = new GuiIngame(this);
         //你在教我做事? I Know What I'm Doing Mod
         getTutorial().setStep(TutorialSteps.NONE);
+        //End
         if (this.serverName != null)
         {
             this.displayGuiScreen(new GuiConnecting(new GuiMainMenu(), this, this.serverName, this.serverPort));
@@ -1966,6 +1967,8 @@ public class Minecraft implements IThreadListener, ISnooperInfo
             {
                 this.entityRenderer.updateRenderer();
             }
+            this.profiler.endStartSection("lighting");
+            this.world.getLightingEngine().processLightUpdates();
 
             this.profiler.endStartSection("levelRenderer");
 

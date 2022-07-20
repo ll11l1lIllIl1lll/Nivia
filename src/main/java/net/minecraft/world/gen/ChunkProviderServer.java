@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
+
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.entity.EnumCreatureType;
@@ -196,6 +197,7 @@ public class ChunkProviderServer implements IChunkProvider
 
     public boolean saveChunks(boolean all)
     {
+        this.world.getLightingEngine().processLightUpdates();
         int i = 0;
         List<Chunk> list = Lists.newArrayList(this.loadedChunks.values());
 
@@ -241,6 +243,7 @@ public class ChunkProviderServer implements IChunkProvider
         {
             if (!this.droppedChunks.isEmpty())
             {
+                this.world.getLightingEngine().processLightUpdates();
                 Iterator<Long> iterator = this.droppedChunks.iterator();
 
                 for (int i = 0; i < 100 && iterator.hasNext(); iterator.remove())

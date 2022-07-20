@@ -24,7 +24,7 @@ public class ExtendedBlockStorage
      * Chunk from random tick updates for performance reasons.
      */
     private int tickRefCount;
-    private final BlockStateContainer data;
+    public final BlockStateContainer data;
 
     /** The NibbleArray containing a block of Block-light data. */
     private NibbleArray blockLight;
@@ -36,6 +36,8 @@ public class ExtendedBlockStorage
      * net.minecraft.world.WorldProvider#hasSkylight have skylight}.
      */
     private NibbleArray skyLight;
+
+    private int lightRefCount = -1;
 
     public ExtendedBlockStorage(int y, boolean storeSkylight)
     {
@@ -93,7 +95,21 @@ public class ExtendedBlockStorage
      */
     public boolean isEmpty()
     {
-        return this.blockRefCount == 0;
+        if (this.blockRefCount != 0) {
+            return false;
+        }
+
+        // -1 indicates the lightRefCount needs to be re-calculated
+        if (this.lightRefCount == -1) {
+            if (this.checkLightArrayEqual(this.skyLight, (byte) 0xFF)
+                    && this.checkLightArrayEqual(this.blockLight, (byte) 0x00)) {
+                this.lightRefCount = 0; // Lighting is trivial, don't send to clients
+            } else {
+                this.lightRefCount = 1; // Lighting is not trivial, send to clients
+            }
+        }
+
+        return this.lightRefCount == 0;
     }
 
     /**
@@ -119,6 +135,7 @@ public class ExtendedBlockStorage
     public void setSkyLight(int x, int y, int z, int value)
     {
         this.skyLight.set(x, y, z, value);
+        this.lightRefCount = -1;
     }
 
     /**
@@ -135,6 +152,7 @@ public class ExtendedBlockStorage
     public void setBlockLight(int x, int y, int z, int value)
     {
         this.blockLight.set(x, y, z, value);
+        this.lightRefCount = -1;
     }
 
     /**
@@ -204,6 +222,7 @@ public class ExtendedBlockStorage
     public void setBlockLight(NibbleArray newBlocklightArray)
     {
         this.blockLight = newBlocklightArray;
+        this.lightRefCount = -1;
     }
 
     /**
@@ -212,10 +231,32 @@ public class ExtendedBlockStorage
     public void setSkyLight(NibbleArray newSkylightArray)
     {
         this.skyLight = newSkylightArray;
+        this.lightRefCount = -1;
     }
 
     public int getBlockRefCount()
     {
         return this.blockRefCount;
+    }
+
+    /**
+     * @author Angeline
+     * @reason Send light data to clients when lighting is non-trivial
+     */
+
+    private boolean checkLightArrayEqual(NibbleArray storage, byte val) {
+        if (storage == null) {
+            return true;
+        }
+
+        byte[] arr = storage.getData();
+
+        for (byte b : arr) {
+            if (b != val) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

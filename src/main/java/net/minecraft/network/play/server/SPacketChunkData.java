@@ -153,6 +153,7 @@ public class SPacketChunkData implements Packet<INetHandlerPlayClient>
 
     protected int calculateChunkSize(Chunk chunkIn, boolean p_189556_2_, int p_189556_3_)
     {
+        chunkIn.getLightingEngine().processLightUpdates();
         int i = 0;
         ExtendedBlockStorage[] aextendedblockstorage = chunkIn.getBlockStorageArray();
         int j = 0;
