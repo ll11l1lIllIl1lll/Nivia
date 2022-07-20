@@ -9,6 +9,7 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
+import bl4ckscor3.mod.particleculling.CullHook;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
@@ -351,7 +352,8 @@ public class ParticleManager
                         {
                             if (flag || !(particle instanceof ParticleSuspend))
                             {
-                                particle.renderParticle(bufferbuilder, entityIn, partialTicks, f, f4, f1, f2, f3);
+                                if(CullHook.shouldRenderParticle(particle, bufferbuilder, entityIn, partialTicks, f, f4, f1, f2, f3))
+                                    particle.renderParticle(bufferbuilder, entityIn, partialTicks, f, f4, f1, f2, f3);
                             }
                         }
                         catch (Throwable throwable)
@@ -417,7 +419,8 @@ public class ParticleManager
 
                 for (Particle particle : queue)
                 {
-                    particle.renderParticle(bufferbuilder, entityIn, partialTick, f1, f5, f2, f3, f4);
+                    if(CullHook.shouldRenderParticle(particle, bufferbuilder, entityIn, partialTick, f, f4, f1, f2, f3))
+                        particle.renderParticle(bufferbuilder, entityIn, partialTick, f1, f5, f2, f3, f4);
                 }
             }
         }

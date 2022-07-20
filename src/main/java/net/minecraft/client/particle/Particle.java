@@ -18,9 +18,9 @@ public class Particle
     protected double prevPosX;
     protected double prevPosY;
     protected double prevPosZ;
-    protected double posX;
-    protected double posY;
-    protected double posZ;
+    public double posX;
+    public double posY;
+    public double posZ;
     protected double motionX;
     protected double motionY;
     protected double motionZ;

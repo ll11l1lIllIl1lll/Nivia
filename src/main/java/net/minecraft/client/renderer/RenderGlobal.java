@@ -230,6 +230,8 @@ public class RenderGlobal implements IWorldEventListener, IResourceManagerReload
     private boolean firstWorldLoad = false;
     private static int renderEntitiesCounter = 0;
 
+    public ICamera camera;
+
     public RenderGlobal(Minecraft mcIn)
     {
         this.cloudRenderer = new CloudRenderer(mcIn);
@@ -1119,6 +1121,7 @@ public class RenderGlobal implements IWorldEventListener, IResourceManagerReload
 
     public void setupTerrain(Entity viewEntity, double partialTicks, ICamera camera, int frameCount, boolean playerSpectator)
     {
+        this.camera = camera;
         if (this.mc.gameSettings.renderDistanceChunks != this.renderDistanceChunks)
         {
             this.loadRenderers();
