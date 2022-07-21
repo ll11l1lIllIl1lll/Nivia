@@ -121,6 +121,9 @@ public class LoadingScreenRenderer implements IProgressUpdate
      */
     public void setLoadingProgress(int progress)
     {
+        if (progress < 0) {
+            return;
+        }
         if (!this.mc.running)
         {
             if (!this.loadingSuccess)
