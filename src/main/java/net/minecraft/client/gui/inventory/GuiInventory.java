@@ -1,6 +1,8 @@
 package net.minecraft.client.gui.inventory;
 
 import java.io.IOException;
+
+import com.github.gamepiaynmo.custommodel.mixin.DrawEntityInventoryHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiButtonImage;
@@ -125,6 +127,7 @@ public class GuiInventory extends InventoryEffectRenderer implements IRecipeShow
      */
     public static void drawEntityOnScreen(int posX, int posY, int scale, float mouseX, float mouseY, EntityLivingBase ent)
     {
+        DrawEntityInventoryHandler.preDrawEntityInventory(ent);
         GlStateManager.enableColorMaterial();
         GlStateManager.pushMatrix();
         GlStateManager.translate((float)posX, (float)posY, 50.0F);
@@ -161,6 +164,7 @@ public class GuiInventory extends InventoryEffectRenderer implements IRecipeShow
         GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
         GlStateManager.disableTexture2D();
         GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+        DrawEntityInventoryHandler.postDrawEntityInventory();
     }
 
     /**

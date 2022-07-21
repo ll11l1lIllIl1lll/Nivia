@@ -1,5 +1,6 @@
 package net.minecraft.client.renderer.entity;
 
+import com.github.gamepiaynmo.custommodel.mixin.RenderPlayerHandler;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelPlayer;
@@ -57,6 +58,7 @@ public class RenderPlayer extends RenderLivingBase<AbstractClientPlayer>
      */
     public void doRender(AbstractClientPlayer entity, double x, double y, double z, float entityYaw, float partialTicks)
     {
+        RenderPlayerHandler.renderPre(entity, getMainModel(), x, y, z, partialTicks, null);
         if (!entity.isUser() || this.renderManager.renderViewEntity == entity)
         {
             double d0 = y;
@@ -71,6 +73,15 @@ public class RenderPlayer extends RenderLivingBase<AbstractClientPlayer>
             super.doRender(entity, x, d0, z, entityYaw, partialTicks);
             GlStateManager.disableBlendProfile(GlStateManager.Profile.PLAYER_SKIN);
         }
+        RenderPlayerHandler.renderPost();
+    }
+
+    @Override
+    protected void renderModel(AbstractClientPlayer entityLivingBase, float f, float f2, float f3, float f4, float f5, float f6) {
+        if (RenderPlayerHandler.renderModel(entityLivingBase, f, f2, f3, f4, f5, f6)) {
+            return;
+        }
+        super.renderModel(entityLivingBase, f, f2, f3, f4, f5, f6);
     }
 
     private void setModelVisibilities(AbstractClientPlayer clientPlayer)
@@ -187,6 +198,9 @@ public class RenderPlayer extends RenderLivingBase<AbstractClientPlayer>
 
     public void renderRightArm(AbstractClientPlayer clientPlayer)
     {
+        if (RenderPlayerHandler.renderRightArm(clientPlayer)) {
+            return;
+        }
         float f = 1.0F;
         GlStateManager.color(1.0F, 1.0F, 1.0F);
         float f1 = 0.0625F;
@@ -205,6 +219,9 @@ public class RenderPlayer extends RenderLivingBase<AbstractClientPlayer>
 
     public void renderLeftArm(AbstractClientPlayer clientPlayer)
     {
+        if (RenderPlayerHandler.renderLeftArm(clientPlayer)) {
+            return;
+        }
         float f = 1.0F;
         GlStateManager.color(1.0F, 1.0F, 1.0F);
         float f1 = 0.0625F;

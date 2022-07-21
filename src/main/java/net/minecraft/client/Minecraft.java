@@ -1,5 +1,6 @@
 package net.minecraft.client;
 
+import com.github.gamepiaynmo.custommodel.client.CustomModelClient;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
@@ -613,6 +614,8 @@ public class Minecraft implements IThreadListener, ISnooperInfo
         this.effectRenderer = new ParticleManager(this.world, this.renderEngine);
         this.checkGLError("Post startup");
         this.ingameGUI = new GuiIngame(this);
+        CustomModelClient.onInitializeClient();
+        CustomModelClient.initPlayerRenderer();
         //你在教我做事? I Know What I'm Doing Mod
         getTutorial().setStep(TutorialSteps.NONE);
         //End
@@ -2050,6 +2053,7 @@ public class Minecraft implements IThreadListener, ISnooperInfo
         }
 
         this.profiler.endSection();
+        CustomModelClient.onWorldTick();
         this.systemTime = getSystemTime();
     }
 

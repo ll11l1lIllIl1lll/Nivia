@@ -1,6 +1,8 @@
 package net.minecraft.client.gui;
 
 import java.io.IOException;
+
+import com.github.gamepiaynmo.custommodel.client.gui.GuiModelSelection;
 import net.minecraft.client.gui.achievement.GuiStats;
 import net.minecraft.client.gui.advancements.GuiScreenAdvancements;
 import net.minecraft.client.multiplayer.WorldClient;
@@ -34,6 +36,7 @@ public class GuiIngameMenu extends GuiScreen
         guibutton.enabled = this.mc.isSingleplayer() && !this.mc.getIntegratedServer().getPublic();
         this.buttonList.add(new GuiButton(5, this.width / 2 - 100, this.height / 4 + 48 + -16, 98, 20, I18n.format("gui.advancements")));
         this.buttonList.add(new GuiButton(6, this.width / 2 + 2, this.height / 4 + 48 + -16, 98, 20, I18n.format("gui.stats")));
+        buttonList.add(new GuiButton(1337, 5, 6, 98, 20, "CustomModel"));
     }
 
     /**
@@ -83,6 +86,9 @@ public class GuiIngameMenu extends GuiScreen
 
             case 7:
                 this.mc.displayGuiScreen(new GuiShareToLan(this));
+            case 1337:
+                this.mc.displayGuiScreen(new GuiModelSelection());
+                break;
         }
     }
 

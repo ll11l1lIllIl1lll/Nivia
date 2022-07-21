@@ -13,7 +13,7 @@ public class ModelPlayer extends ModelBiped
     public ModelRenderer bipedBodyWear;
     private final ModelRenderer bipedCape;
     private final ModelRenderer bipedDeadmau5Head;
-    private final boolean smallArms;
+    public final boolean smallArms;
 
     public ModelPlayer(float modelSize, boolean smallArmsIn)
     {

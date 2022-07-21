@@ -139,6 +139,11 @@ public class ItemArmor extends Item
         }
     }
 
+    //Forge FuckU
+    public boolean hasOverlay(ItemStack p_hasOverlay_1_) {
+        return this.material == ArmorMaterial.LEATHER || this.getColor(p_hasOverlay_1_) != 0xFFFFFF;
+    }
+
     /**
      * Return the color for the specified armor ItemStack.
      */

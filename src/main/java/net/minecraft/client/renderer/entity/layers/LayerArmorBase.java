@@ -25,11 +25,11 @@ public abstract class LayerArmorBase<T extends ModelBase> implements LayerRender
     protected T modelLeggings;
     protected T modelArmor;
     private final RenderLivingBase<?> renderer;
-    private float alpha = 1.0F;
-    private float colorR = 1.0F;
-    private float colorG = 1.0F;
-    private float colorB = 1.0F;
-    private boolean skipRenderGlint;
+    public float alpha = 1.0F;
+    public float colorR = 1.0F;
+    public float colorG = 1.0F;
+    public float colorB = 1.0F;
+    public boolean skipRenderGlint;
     private static final Map<String, ResourceLocation> ARMOR_TEXTURE_RES_MAP = Maps.<String, ResourceLocation>newHashMap();
 
     public LayerArmorBase(RenderLivingBase<?> rendererIn)
@@ -248,7 +248,8 @@ public abstract class LayerArmorBase<T extends ModelBase> implements LayerRender
         }
 
         String s2 = String.format("%s:textures/models/armor/%s_layer_%d%s.png", s1, s, this.isLegSlot(p_getArmorResource_3_) ? 2 : 1, p_getArmorResource_4_ == null ? "" : String.format("_%s", p_getArmorResource_4_));
-        s2 = Reflector.callString(Reflector.ForgeHooksClient_getArmorTexture, p_getArmorResource_1_, p_getArmorResource_2_, s2, p_getArmorResource_3_, p_getArmorResource_4_);
+        //FUCK YOU MINECRAFT FORGE
+        //s2 = Reflector.callString(Reflector.ForgeHooksClient_getArmorTexture, p_getArmorResource_1_, p_getArmorResource_2_, s2, p_getArmorResource_3_, p_getArmorResource_4_);
         ResourceLocation resourcelocation = ARMOR_TEXTURE_RES_MAP.get(s2);
 
         if (resourcelocation == null)

@@ -23,7 +23,7 @@ import net.minecraft.world.GameType;
 
 public class GuiPlayerTabOverlay extends Gui
 {
-    private static final Ordering<NetworkPlayerInfo> ENTRY_ORDERING = Ordering.from(new GuiPlayerTabOverlay.PlayerComparator());
+    public static final Ordering<NetworkPlayerInfo> ENTRY_ORDERING = Ordering.from(new GuiPlayerTabOverlay.PlayerComparator());
     private final Minecraft mc;
     private final GuiIngame guiIngame;
     private ITextComponent footer;

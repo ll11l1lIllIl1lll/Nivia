@@ -1,5 +1,6 @@
 package net.minecraft.client.renderer;
 
+import com.github.gamepiaynmo.custommodel.mixin.RenderPlayerHandler;
 import com.google.common.base.MoreObjects;
 import java.util.Objects;
 import net.minecraft.block.Block;
@@ -323,7 +324,7 @@ public class ItemRenderer
     {
         AbstractClientPlayer abstractclientplayer = this.mc.player;
         float f = abstractclientplayer.getSwingProgress(partialTicks);
-        EnumHand enumhand = (EnumHand)MoreObjects.firstNonNull(abstractclientplayer.swingingHand, EnumHand.MAIN_HAND);
+        EnumHand enumhand = MoreObjects.firstNonNull(abstractclientplayer.swingingHand, EnumHand.MAIN_HAND);
         float f1 = abstractclientplayer.prevRotationPitch + (abstractclientplayer.rotationPitch - abstractclientplayer.prevRotationPitch) * partialTicks;
         float f2 = abstractclientplayer.prevRotationYaw + (abstractclientplayer.rotationYaw - abstractclientplayer.prevRotationYaw) * partialTicks;
         boolean flag = true;
@@ -353,6 +354,7 @@ public class ItemRenderer
 
             if (!Reflector.ForgeHooksClient_renderSpecificFirstPersonHand.exists() || !Reflector.callBoolean(Reflector.ForgeHooksClient_renderSpecificFirstPersonHand, EnumHand.MAIN_HAND, partialTicks, f1, f3, f5, this.itemStackMainHand))
             {
+                RenderPlayerHandler.renderFirstPerson(EnumHand.MAIN_HAND);
                 this.renderItemInFirstPerson(abstractclientplayer, partialTicks, f1, EnumHand.MAIN_HAND, f3, this.itemStackMainHand, f5);
             }
         }
@@ -364,6 +366,7 @@ public class ItemRenderer
 
             if (!Reflector.ForgeHooksClient_renderSpecificFirstPersonHand.exists() || !Reflector.callBoolean(Reflector.ForgeHooksClient_renderSpecificFirstPersonHand, EnumHand.OFF_HAND, partialTicks, f1, f4, f6, this.itemStackOffHand))
             {
+                RenderPlayerHandler.renderFirstPerson(EnumHand.OFF_HAND);
                 this.renderItemInFirstPerson(abstractclientplayer, partialTicks, f1, EnumHand.OFF_HAND, f4, this.itemStackOffHand, f6);
             }
         }

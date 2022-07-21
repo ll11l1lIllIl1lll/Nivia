@@ -37,7 +37,7 @@ public abstract class Render<T extends Entity> implements IEntityRenderer
      * Determines the darkness of the object's shadow. Higher value makes a darker shadow.
      */
     protected float shadowOpaque = 1.0F;
-    protected boolean renderOutlines;
+    public boolean renderOutlines;
     private Class entityClass = null;
     private ResourceLocation locationTextureCustom = null;
 

@@ -271,6 +271,7 @@ public abstract class RenderLivingBase<T extends EntityLivingBase> extends Rende
             }
             catch (Exception exception1)
             {
+                exception1.printStackTrace();
                 LOGGER.error("Couldn't render entity", (Throwable)exception1);
             }
 
