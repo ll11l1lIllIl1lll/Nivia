@@ -3,6 +3,8 @@ package net.minecraft.client.resources;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
@@ -87,7 +89,21 @@ public abstract class AbstractResourcePack implements IResourcePack
 
     public BufferedImage getPackImage() throws IOException
     {
-        return TextureUtil.readBufferedImage(this.getInputStreamByName("pack.png"));
+        BufferedImage image = TextureUtil.readBufferedImage(this.getInputStreamByName("pack.png"));
+        if (image == null) {
+            return null;
+        }
+
+        if (image.getWidth() <= 64 && image.getHeight() <= 64) {
+            return image;
+        }
+
+        BufferedImage downscaledIcon = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
+        Graphics graphics = downscaledIcon.getGraphics();
+        graphics.drawImage(image, 0, 0, 64, 64, null);
+        graphics.dispose();
+        System.out.println("Scaling resource pack icon from " + image.getWidth() + " to " + 64);
+        return downscaledIcon;
     }
 
     public String getPackName()
