@@ -23,6 +23,15 @@ import net.minecraft.util.Util;
 import net.minecraft.util.WeightedRandom;
 import net.minecraft.util.math.MathHelper;
 
+/**
+ * Fix a memory leak caused by the world object still being pointed to by the static
+ * ENCHANTMENT_ fields. Instead of modifying those static fields, make a new instance
+ * of IModifier every use. Overwriting these methods is necessary, it would require a
+ * redirect for every single line otherwise.
+ * <p>
+ * Bugs fixed:
+ * - https://bugs.mojang.com/browse/MC-128547
+ */
 public class EnchantmentHelper
 {
     /**
@@ -157,20 +166,24 @@ public class EnchantmentHelper
     /**
      * Returns the modifier of protection enchantments on armors equipped on player.
      */
+    /** @reason Fix memory leak. See mixin class comment. */
     public static int getEnchantmentModifierDamage(Iterable<ItemStack> stacks, DamageSource source)
     {
-        ENCHANTMENT_MODIFIER_DAMAGE.damageModifier = 0;
-        ENCHANTMENT_MODIFIER_DAMAGE.source = source;
-        applyEnchantmentModifierArray(ENCHANTMENT_MODIFIER_DAMAGE, stacks);
-        return ENCHANTMENT_MODIFIER_DAMAGE.damageModifier;
+        EnchantmentHelper.ModifierDamage enchantmentModifierDamage = new EnchantmentHelper.ModifierDamage();
+        enchantmentModifierDamage.damageModifier = 0;
+        enchantmentModifierDamage.source = source;
+        applyEnchantmentModifierArray(enchantmentModifierDamage, stacks);
+        return enchantmentModifierDamage.damageModifier;
     }
 
+    /** @reason Fix memory leak. See mixin class comment. */
     public static float getModifierForCreature(ItemStack stack, EnumCreatureAttribute creatureAttribute)
     {
-        ENCHANTMENT_MODIFIER_LIVING.livingModifier = 0.0F;
-        ENCHANTMENT_MODIFIER_LIVING.entityLiving = creatureAttribute;
-        applyEnchantmentModifier(ENCHANTMENT_MODIFIER_LIVING, stack);
-        return ENCHANTMENT_MODIFIER_LIVING.livingModifier;
+        EnchantmentHelper.ModifierLiving enchantmentModifierLiving = new EnchantmentHelper.ModifierLiving();
+        enchantmentModifierLiving.livingModifier = 0.0F;
+        enchantmentModifierLiving.entityLiving = creatureAttribute;
+        applyEnchantmentModifier(enchantmentModifierLiving, stack);
+        return enchantmentModifierLiving.livingModifier;
     }
 
     public static float getSweepingDamageRatio(EntityLivingBase p_191527_0_)
@@ -179,35 +192,35 @@ public class EnchantmentHelper
         return i > 0 ? EnchantmentSweepingEdge.getSweepingDamageRatio(i) : 0.0F;
     }
 
-    public static void applyThornEnchantments(EntityLivingBase p_151384_0_, Entity p_151384_1_)
+    /** @reason Fix memory leak. See mixin class comment. */
+    public static void applyThornEnchantments(EntityLivingBase user, Entity attacker)
     {
-        ENCHANTMENT_ITERATOR_HURT.attacker = p_151384_1_;
-        ENCHANTMENT_ITERATOR_HURT.user = p_151384_0_;
+        EnchantmentHelper.HurtIterator enchantmentIteratorHurt = new EnchantmentHelper.HurtIterator();
+        enchantmentIteratorHurt.attacker = attacker;
+        enchantmentIteratorHurt.user = user;
 
-        if (p_151384_0_ != null)
-        {
-            applyEnchantmentModifierArray(ENCHANTMENT_ITERATOR_HURT, p_151384_0_.getEquipmentAndArmor());
+        if (user != null) {
+            applyEnchantmentModifierArray(enchantmentIteratorHurt, user.getEquipmentAndArmor());
         }
 
-        if (p_151384_1_ instanceof EntityPlayer)
-        {
-            applyEnchantmentModifier(ENCHANTMENT_ITERATOR_HURT, p_151384_0_.getHeldItemMainhand());
+        if (attacker instanceof EntityPlayer) {
+            applyEnchantmentModifier(enchantmentIteratorHurt, user.getHeldItemMainhand());
         }
     }
 
-    public static void applyArthropodEnchantments(EntityLivingBase p_151385_0_, Entity p_151385_1_)
+    /** @reason Fix memory leak. See mixin class comment. */
+    public static void applyArthropodEnchantments(EntityLivingBase user, Entity target)
     {
-        ENCHANTMENT_ITERATOR_DAMAGE.user = p_151385_0_;
-        ENCHANTMENT_ITERATOR_DAMAGE.target = p_151385_1_;
+        EnchantmentHelper.DamageIterator enchantmentIteratorDamage = new EnchantmentHelper.DamageIterator();
+        enchantmentIteratorDamage.user = user;
+        enchantmentIteratorDamage.target = target;
 
-        if (p_151385_0_ != null)
-        {
-            applyEnchantmentModifierArray(ENCHANTMENT_ITERATOR_DAMAGE, p_151385_0_.getEquipmentAndArmor());
+        if (user != null) {
+            applyEnchantmentModifierArray(enchantmentIteratorDamage, user.getEquipmentAndArmor());
         }
 
-        if (p_151385_0_ instanceof EntityPlayer)
-        {
-            applyEnchantmentModifier(ENCHANTMENT_ITERATOR_DAMAGE, p_151385_0_.getHeldItemMainhand());
+        if (user instanceof EntityPlayer) {
+            applyEnchantmentModifier(enchantmentIteratorDamage, user.getHeldItemMainhand());
         }
     }
 
