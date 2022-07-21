@@ -334,7 +334,11 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
 
         this.playerList.setPlayerManager(this.worlds);
         this.setDifficultyForAllWorlds(this.getDifficulty());
-        this.initialWorldChunkLoad();
+        /**
+         * @reason Disable initial world chunk load. This makes world load much faster, but in exchange
+         * the player may see incomplete chunks (like when teleporting to a new area).
+         */
+        //this.initialWorldChunkLoad();
     }
 
     public void initialWorldChunkLoad()
