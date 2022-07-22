@@ -5,6 +5,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
+
+import java.awt.*;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -823,7 +825,7 @@ public class GuiIngame extends Gui
         int k1 = 3;
         int l1 = scaledRes.getScaledWidth() - i - 3;
         int j = 0;
-
+        final int color = new Color(255, 255, 255, 150).getRGB();
         for (Score score1 : collection)
         {
             ++j;
@@ -833,15 +835,20 @@ public class GuiIngame extends Gui
             int k = j1 - j * this.getFontRenderer().FONT_HEIGHT;
             int l = scaledRes.getScaledWidth() - 3 + 2;
             drawRect(l1 - 2, k, l, k + this.getFontRenderer().FONT_HEIGHT, 1342177280);
-            this.getFontRenderer().drawString(s1, l1, k, 553648127);
-            this.getFontRenderer().drawString(s2, l - this.getFontRenderer().getStringWidth(s2), k, 553648127);
+            GlStateManager.enableBlend();
+            this.getFontRenderer().drawString(s1, l1, k, color);
+            GlStateManager.disableBlend();
+            //red number
+            //this.getFontRenderer().drawString(s2, l - this.getFontRenderer().getStringWidth(s2), k, -1258291201);
 
             if (j == collection.size())
             {
                 String s3 = objective.getDisplayName();
                 drawRect(l1 - 2, k - this.getFontRenderer().FONT_HEIGHT - 1, l, k - 1, 1610612736);
                 drawRect(l1 - 2, k - 1, l, k, 1342177280);
-                this.getFontRenderer().drawString(s3, l1 + i / 2 - this.getFontRenderer().getStringWidth(s3) / 2, k - this.getFontRenderer().FONT_HEIGHT, 553648127);
+                GlStateManager.enableBlend();
+                this.getFontRenderer().drawString(s3, l1 + i / 2 - this.getFontRenderer().getStringWidth(s3) / 2, k - this.getFontRenderer().FONT_HEIGHT, color);
+                GlStateManager.disableBlend();
             }
         }
     }
