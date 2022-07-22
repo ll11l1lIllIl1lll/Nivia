@@ -10,6 +10,7 @@ group 'wtf.kiddo.nivia'
 version '1.0-SNAPSHOT'
 
 repositories {
+    mavenLocal()
     maven { url 'https://mirrors.cloud.tencent.com/nexus/repository/maven-public/' }
     maven { url 'https://jitpack.io' }
     mavenCentral()
@@ -39,7 +40,9 @@ idea {
         }
     }
     module {
-        inheritOutputDirs = true
+        inheritOutputDirs = false
+        outputDir = file('build')
+        testOutputDir = file('build')
     }
 }
 
