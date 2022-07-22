@@ -154,7 +154,7 @@ public class GameSettings
     public KeyBinding keyBindSneak = new KeyBinding("key.sneak", 42, "key.categories.movement");
     public KeyBinding keyBindSprint = new KeyBinding("key.sprint", 29, "key.categories.movement");
     public KeyBinding keyBindInventory = new KeyBinding("key.inventory", 18, "key.categories.inventory");
-    public KeyBinding keyBindSwapHands = new KeyBinding("key.swapHands", 33, "key.categories.inventory");
+    public KeyBinding keyBindSwapHands = new KeyBinding("key.swapHands", 0, "key.categories.inventory");
     public KeyBinding keyBindDrop = new KeyBinding("key.drop", 16, "key.categories.inventory");
     public KeyBinding keyBindUseItem = new KeyBinding("key.use", -99, "key.categories.gameplay");
     public KeyBinding keyBindAttack = new KeyBinding("key.attack", -100, "key.categories.gameplay");
