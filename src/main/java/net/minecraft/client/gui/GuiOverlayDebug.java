@@ -32,7 +32,7 @@ import net.optifine.reflect.Reflector;
 import net.optifine.util.MemoryMonitor;
 import net.optifine.util.NativeMemory;
 import org.lwjgl.opengl.Display;
-
+import static org.lwjgl.opengl.GL11.*;
 public class GuiOverlayDebug extends Gui
 {
     private final Minecraft mc;
@@ -276,19 +276,29 @@ public class GuiOverlayDebug extends Gui
         long j = Runtime.getRuntime().totalMemory();
         long k = Runtime.getRuntime().freeMemory();
         long l = j - k;
-        List<String> list = Lists.newArrayList(String.format("Java: %s %dbit", System.getProperty("java.version"), this.mc.isJava64bit() ? 64 : 32), String.format("Mem: % 2d%% %03d/%03dMB", l * 100L / i, bytesToMb(l), bytesToMb(i)), String.format("Allocated: % 2d%% %03dMB", j * 100L / i, bytesToMb(j)), "", String.format("CPU: %s", OpenGlHelper.getCpu()), "", String.format("Display: %dx%d (%s)", Display.getWidth(), Display.getHeight(), GlStateManager.glGetString(7936)), GlStateManager.glGetString(7937), GlStateManager.glGetString(7938));
-        long i1 = NativeMemory.getBufferAllocated();
-        long j1 = NativeMemory.getBufferMaximum();
-        String s = "Native: " + bytesToMb(i1) + "/" + bytesToMb(j1) + "MB";
-        list.add(4, s);
-        list.set(5, "GC: " + MemoryMonitor.getAllocationRateMb() + "MB/s");
-
+        List<String> list = Lists.newArrayList(
+                String.format("Java: %s %dbit", System.getProperty("java.version"), this.mc.isJava64bit() ? 64 : 32),
+                String.format("Mem: % 2d%% %03d/%03dMB", l * 100L / i, bytesToMb(l), bytesToMb(i)),
+                String.format("Allocated: % 2d%% %03dMB", j * 100L / i, bytesToMb(j)),
+                "Native: " + bytesToMb(NativeMemory.getBufferAllocated()) + "/" + bytesToMb(NativeMemory.getBufferMaximum()) + "MB",
+                String.format("GC: %sMB/s", MemoryMonitor.getAllocationRateMb()),
+                "",
+                String.format("CPU: %s", OpenGlHelper.getCpu()),
+                String.format("Renderer: %s", glGetString(GL_RENDERER)),
+                String.format("LWJGL Version: %s", org.lwjgl.Sys.getVersion()),
+                String.format("OpenGL Version: %s", glGetString(GL_VERSION)),
+                String.format("Resolution: %dx%d", Display.getWidth(), Display.getHeight()));
+        list.add("");
+        list.add(String.format("Minecraft %s", "1.12.2"));
+        list.add(String.format("MCP %s", "9.42"));
+        /*
         if (Reflector.FMLCommonHandler_getBrandings.exists())
         {
             Object object = Reflector.call(Reflector.FMLCommonHandler_instance);
             list.add("");
             list.addAll((Collection)Reflector.call(object, Reflector.FMLCommonHandler_getBrandings, false));
         }
+         */
 
         if (this.mc.isReducedDebug())
         {
