@@ -206,6 +206,7 @@ public abstract class RenderPlayerHandler {
     }
 
     public static void renderFirstPerson(EnumHand hand) {
+        if(CustomModelClient.manager.getModelPacks().isEmpty()) return;
         Minecraft mc = Minecraft.getMinecraft();
         EntityPlayerSP player = mc.player;
         ModelPack pack = CustomModelClient.manager.getModelForPlayer(player);

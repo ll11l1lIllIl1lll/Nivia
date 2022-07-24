@@ -44,6 +44,7 @@ public class CustomModelClient {
     public static void onInitializeClient() {
         new File(CustomModel.MODEL_DIR).mkdirs();
         initServerStatus();
+        CustomModel.manager.refreshModelList();
     }
 
     public static void initPlayerRenderer() {

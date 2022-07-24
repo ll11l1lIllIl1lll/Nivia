@@ -71,8 +71,8 @@ public class ClientModelManager {
         ModelPack pack = null;
 
         try {
-            if (info == null)
-                throw new ModelNotFoundException(model);
+            //I do not care
+            //if (info == null) throw new ModelNotFoundException(model);
             TextureManager textureManager = Minecraft.getMinecraft().getTextureManager();
             pack = ModelPack.fromModelInfo(textureManager, info.info, uuid);
         } catch (Exception e) {
@@ -150,5 +150,9 @@ public class ClientModelManager {
                     .filter(uuid -> !uuids.contains(uuid)).collect(Collectors.toList());
             toClear.forEach(this::releaseModel);
         }
+    }
+
+    public Map<UUID, ModelPack> getModelPacks() {
+        return modelPacks;
     }
 }
