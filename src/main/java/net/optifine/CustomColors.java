@@ -13,6 +13,11 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import javax.imageio.ImageIO;
+
+import fionathemortal.betterbiomeblend.BiomeColor;
+import fionathemortal.betterbiomeblend.ColorChunk;
+import fionathemortal.betterbiomeblend.ColorChunkCache;
+import fionathemortal.betterbiomeblend.OptifineProxy;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRedstoneWire;
 import net.minecraft.block.BlockStem;
@@ -802,28 +807,28 @@ public class CustomColors {
 
 	private static int getSmoothColorMultiplier(IBlockState blockState, IBlockAccess blockAccess, BlockPos blockPos,
 			CustomColors.IColorizer colorizer, BlockPosM blockPosM) {
-		int i = 0;
-		int j = 0;
-		int k = 0;
-		int l = blockPos.getX();
-		int i1 = blockPos.getY();
-		int j1 = blockPos.getZ();
-		BlockPosM blockposm = blockPosM;
+		int x = blockPos.getX();
+		int z = blockPos.getZ();
 
-		for (int k1 = l - 1; k1 <= l + 1; ++k1) {
-			for (int l1 = j1 - 1; l1 <= j1 + 1; ++l1) {
-				blockposm.setXyz(k1, i1, l1);
-				int i2 = colorizer.getColor(blockState, blockAccess, blockposm);
-				i += i2 >> 16 & 255;
-				j += i2 >> 8 & 255;
-				k += i2 & 255;
-			}
+		int chunkX = x >> 4;
+		int chunkZ = z >> 4;
+
+		int colorizerID = OptifineProxy.getColorizerID(colorizer);
+
+		ThreadLocal<ColorChunk> threadLocal = BiomeColor.getThreadLocalGenericChunkWrapper(blockAccess);
+
+		ColorChunk chunk = BiomeColor.getThreadLocalChunk(threadLocal, chunkX, chunkZ, colorizerID);
+
+		if (chunk == null)
+		{
+			ColorChunkCache cache = BiomeColor.getColorChunkCacheForIBlockAccess(blockAccess);
+
+			chunk = OptifineProxy.getBlendedColorChunk(cache, blockAccess, colorizerID, chunkX, chunkZ, colorizer, blockState);
+
+			BiomeColor.setThreadLocalChunk(threadLocal, chunk, cache);
 		}
 
-		int j2 = i / 9;
-		int k2 = j / 9;
-		int l2 = k / 9;
-		return j2 << 16 | k2 << 8 | l2;
+		return chunk.getColor(x, z);
 	}
 
 	public static int getFluidColor(IBlockAccess blockAccess, IBlockState blockState, BlockPos blockPos,

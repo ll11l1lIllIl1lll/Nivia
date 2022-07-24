@@ -1,25 +1,26 @@
 package net.minecraft.world.biome;
 
+import fionathemortal.betterbiomeblend.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 
 public class BiomeColorHelper
 {
-    private static final BiomeColorHelper.ColorResolver GRASS_COLOR = new BiomeColorHelper.ColorResolver()
+    public static final BiomeColorHelper.ColorResolver GRASS_COLOR = new BiomeColorHelper.ColorResolver()
     {
         public int getColorAtPos(Biome biome, BlockPos blockPosition)
         {
             return biome.getGrassColorAtPos(blockPosition);
         }
     };
-    private static final BiomeColorHelper.ColorResolver FOLIAGE_COLOR = new BiomeColorHelper.ColorResolver()
+    public static final BiomeColorHelper.ColorResolver FOLIAGE_COLOR = new BiomeColorHelper.ColorResolver()
     {
         public int getColorAtPos(Biome biome, BlockPos blockPosition)
         {
             return biome.getFoliageColorAtPos(blockPosition);
         }
     };
-    private static final BiomeColorHelper.ColorResolver WATER_COLOR = new BiomeColorHelper.ColorResolver()
+    public static final BiomeColorHelper.ColorResolver WATER_COLOR = new BiomeColorHelper.ColorResolver()
     {
         public int getColorAtPos(Biome biome, BlockPos blockPosition)
         {
@@ -29,37 +30,111 @@ public class BiomeColorHelper
 
     private static int getColorAtPos(IBlockAccess blockAccess, BlockPos pos, BiomeColorHelper.ColorResolver colorResolver)
     {
-        int i = 0;
-        int j = 0;
-        int k = 0;
+        int x = pos.getX();
+        int z = pos.getZ();
 
-        for (BlockPos.MutableBlockPos blockpos$mutableblockpos : BlockPos.getAllInBoxMutable(pos.add(-1, 0, -1), pos.add(1, 0, 1)))
+        int chunkX = x >> 4;
+        int chunkZ = z >> 4;
+
+        int colorResolverID = ColorResolverCompatibility.getColorResolverID(colorResolver);
+
+        ThreadLocal<ColorChunk> threadLocal = BiomeColor.getThreadLocalGenericChunkWrapper(blockAccess);
+
+        ColorChunk chunk = BiomeColor.getThreadLocalChunk(threadLocal, chunkX, chunkZ, colorResolverID);
+
+        if (chunk == null)
         {
-            int l = colorResolver.getColorAtPos(blockAccess.getBiome(blockpos$mutableblockpos), blockpos$mutableblockpos);
-            i += (l & 16711680) >> 16;
-            j += (l & 65280) >> 8;
-            k += l & 255;
+            ColorChunkCache cache = BiomeColor.getColorChunkCacheForIBlockAccess(blockAccess);
+
+            chunk = BiomeColor.getBlendedColorChunk(cache, blockAccess, colorResolverID, chunkX, chunkZ, colorResolver);
+
+            BiomeColor.setThreadLocalChunk(threadLocal, chunk, cache);
         }
 
-        return (i / 9 & 255) << 16 | (j / 9 & 255) << 8 | k / 9 & 255;
+        int result = chunk.getColor(x, z);
+
+        return result;
     }
 
     public static int getGrassColorAtPos(IBlockAccess blockAccess, BlockPos pos)
     {
-        return getColorAtPos(blockAccess, pos, GRASS_COLOR);
+        int x = pos.getX();
+        int z = pos.getZ();
+
+        int chunkX = x >> 4;
+        int chunkZ = z >> 4;
+
+        ThreadLocal<ColorChunk> threadLocal = BiomeColor.getThreadLocalGrassChunkWrapper(blockAccess);
+
+        ColorChunk chunk = BiomeColor.getThreadLocalChunk(threadLocal, chunkX, chunkZ, BiomeColorType.GRASS);
+
+        if (chunk == null)
+        {
+            ColorChunkCache cache = BiomeColor.getColorChunkCacheForIBlockAccess(blockAccess);
+
+            chunk = BiomeColor.getBlendedColorChunk(cache, blockAccess, BiomeColorType.GRASS, chunkX, chunkZ, BiomeColorHelper.GRASS_COLOR);
+
+            BiomeColor.setThreadLocalChunk(threadLocal, chunk, cache);
+        }
+
+        int result = chunk.getColor(x, z);
+
+        return result;
     }
 
     public static int getFoliageColorAtPos(IBlockAccess blockAccess, BlockPos pos)
     {
-        return getColorAtPos(blockAccess, pos, FOLIAGE_COLOR);
+        int x = pos.getX();
+        int z = pos.getZ();
+
+        int chunkX = x >> 4;
+        int chunkZ = z >> 4;
+
+        ThreadLocal<ColorChunk> threadLocal = BiomeColor.getThreadLocalFoliageChunkWrapper(blockAccess);
+
+        ColorChunk chunk = BiomeColor.getThreadLocalChunk(threadLocal, chunkX, chunkZ, BiomeColorType.FOLIAGE);
+
+        if (chunk == null)
+        {
+            ColorChunkCache cache = BiomeColor.getColorChunkCacheForIBlockAccess(blockAccess);
+
+            chunk = BiomeColor.getBlendedColorChunk(cache, blockAccess, BiomeColorType.FOLIAGE, chunkX, chunkZ, BiomeColorHelper.FOLIAGE_COLOR);
+
+            BiomeColor.setThreadLocalChunk(threadLocal, chunk, cache);
+        }
+
+        int result = chunk.getColor(x, z);
+
+        return result;
     }
 
     public static int getWaterColorAtPos(IBlockAccess blockAccess, BlockPos pos)
     {
-        return getColorAtPos(blockAccess, pos, WATER_COLOR);
+        int x = pos.getX();
+        int z = pos.getZ();
+
+        int chunkX = x >> 4;
+        int chunkZ = z >> 4;
+
+        ThreadLocal<ColorChunk> threadLocal = BiomeColor.getThreadLocalWaterChunkWrapper(blockAccess);
+
+        ColorChunk chunk = BiomeColor.getThreadLocalChunk(threadLocal, chunkX, chunkZ, BiomeColorType.WATER);
+
+        if (chunk == null)
+        {
+            ColorChunkCache cache = BiomeColor.getColorChunkCacheForIBlockAccess(blockAccess);
+
+            chunk = BiomeColor.getBlendedColorChunk(cache, blockAccess, BiomeColorType.WATER, chunkX, chunkZ, BiomeColorHelper.WATER_COLOR);
+
+            BiomeColor.setThreadLocalChunk(threadLocal, chunk, cache);
+        }
+
+        int result = chunk.getColor(x, z);
+
+        return result;
     }
 
-    interface ColorResolver
+    public interface ColorResolver
     {
         int getColorAtPos(Biome biome, BlockPos blockPosition);
     }

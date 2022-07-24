@@ -1,6 +1,7 @@
 package net.minecraft.client.multiplayer;
 
 import com.google.common.base.MoreObjects;
+import fionathemortal.betterbiomeblend.BetterBiomeBlendClient;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -71,6 +72,7 @@ public class ChunkProviderClient implements IChunkProvider
     {
         Chunk chunk = new Chunk(this.world, chunkX, chunkZ);
         this.loadedChunks.put(ChunkPos.asLong(chunkX, chunkZ), chunk);
+        BetterBiomeBlendClient.onChunkLoadedEvent(chunk,this.world);
         chunk.markLoaded(true);
         return chunk;
     }

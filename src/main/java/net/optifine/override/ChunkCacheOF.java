@@ -17,7 +17,7 @@ import net.optifine.util.ArrayCache;
 
 public class ChunkCacheOF implements IBlockAccess
 {
-    private final ChunkCache chunkCache;
+    public final ChunkCache chunkCache;
     private final int posX;
     private final int posY;
     private final int posZ;

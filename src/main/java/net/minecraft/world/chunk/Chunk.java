@@ -10,6 +10,7 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.annotation.Nullable;
 
+import fionathemortal.betterbiomeblend.BetterBiomeBlendClient;
 import me.jellysquid.mods.phosphor.mod.world.WorldChunkSlice;
 import me.jellysquid.mods.phosphor.mod.world.lighting.LightingEngine;
 import me.jellysquid.mods.phosphor.mod.world.lighting.LightingHooks;
@@ -903,6 +904,7 @@ public class Chunk
         {
             this.world.loadEntities(classinheritancemultimap);
         }
+        BetterBiomeBlendClient.onChunkLoadedEvent(this, this.world);
         LightingHooks.scheduleRelightChecksForChunkBoundaries(this.world, this);
     }
 

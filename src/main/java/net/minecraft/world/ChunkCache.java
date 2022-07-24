@@ -20,7 +20,7 @@ public class ChunkCache implements IBlockAccess
     protected boolean empty;
 
     /** Reference to the World object. */
-    protected World world;
+    public World world;
 
     public ChunkCache(World worldIn, BlockPos posFromIn, BlockPos posToIn, int subIn)
     {
